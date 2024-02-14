@@ -42,8 +42,18 @@ def compute_hcqt(audio_fpath):
         List of frequency values in Hz
 
     """
-    y, fs = librosa.load(audio_fpath, sr=SR)
+    audio_sr = librosa.get_samplerate(audio_fpath)
+    y, fs = librosa.load(audio_fpath, sr=audio_sr)
+    
+    # MAX_DURATION = 10
+    # offset = 0
+    # # offset = 10
+    # y = y[offset*fs : (offset + MAX_DURATION)*fs]
 
+    if audio_sr != SR:
+        y = librosa.resample(y, orig_sr=audio_sr, target_sr=SR)
+        fs = SR
+    
     cqt_list = []
     shapes = []
     for h in HARMONICS:
@@ -142,7 +152,7 @@ def load_model(task):
     if task not in TASKS:
         raise ValueError("task must be one of {}".format(TASKS))
 
-    weights_path = os.path.join('weights', '{}.h5'.format(task))
+    weights_path = os.path.join('predict/weights', '{}.h5'.format(task))
     if not os.path.exists(weights_path):
         raise IOError(
             "Cannot find weights path {} for this task.".format(weights_path))
