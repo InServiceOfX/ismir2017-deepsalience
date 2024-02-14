@@ -294,7 +294,7 @@ def save_multif0_output(times, freqs, output_path):
 
 
 def postprocess_saliency_map(salience, freq_grid, time_grid, min_saliency):
-    MIN_RELEVANT_FREQ = librosa.note_to_hz('C3')
+    MIN_RELEVANT_FREQ = librosa.note_to_hz('G2')
     
     # threshold saliency map
     salience[salience < min_saliency] = 0

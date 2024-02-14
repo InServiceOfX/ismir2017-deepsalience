@@ -14,7 +14,7 @@ def load_saliency_map(path):
 
 def postprocess_saliency_map(saliency_dict):
     MIN_SALIENCY = 0.3
-    MIN_RELEVANT_FREQ = librosa.note_to_hz('C3')
+    MIN_RELEVANT_FREQ = librosa.note_to_hz('G2')
     salience = saliency_dict['salience']
     freq_grid = saliency_dict['freqs']
     
@@ -43,7 +43,7 @@ def postprocess_saliency_map(saliency_dict):
     return salience, freq_grid[::bins_per_note]
 
 
-def visualize_saliency_map(salience, freqs, times):     
+def visualize_saliency_map(salience, freqs, times, title='Saliency Map', matplotlib=False):     
     active_pts_f = []
     active_pts_t = []
     clrs = []
@@ -53,8 +53,19 @@ def visualize_saliency_map(salience, freqs, times):
                 active_pts_f.append(f)
                 active_pts_t.append(t)
                 clrs.append(salience[i, j])
-
-    fig = px.scatter(x=active_pts_t, y=active_pts_f, color=clrs, color_continuous_scale='Viridis', labels={'x':'Time (s)', 'y':'Frequency (Hz)'})
+    
+    if matplotlib:
+        import matplotlib.pyplot as plt
+        plt.scatter(active_pts_t, active_pts_f, c=clrs, cmap='viridis', s=1)
+        plt.xlabel('Time (s)')
+        plt.ylabel('Frequency (Hz)')
+        plt.title(title)
+        plt.show()
+        return
+    
+    fig = px.scatter(x=active_pts_t, y=active_pts_f, color=clrs, color_continuous_scale='Viridis', 
+                     labels={'x':'Time (s)', 'y':'Frequency (Hz)'},
+                     title=title)
     fig.show()
 
 
@@ -72,7 +83,7 @@ def process_single_saliency_map(input, output, visualize):
     
     # visualize saliency map
     if visualize:
-        visualize_saliency_map(salience, freqs, saliency_dict['times'])
+        visualize_saliency_map(salience, freqs, saliency_dict['times'], title=input.split('/')[-1])
 
     # save saliency map
     save_saliency_map(salience, freqs, saliency_dict['times'], output)

@@ -10,3 +10,4 @@ protobuf==3.20.0
 h5py==2.10.0
 tqdm
 plotly_express
+torch
