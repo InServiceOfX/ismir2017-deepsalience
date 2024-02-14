@@ -51,9 +51,12 @@ def main(args):
         f.write(f'#SBATCH --time=12:00:00\n')
         f.write(f'#SBATCH --mem=32G\n')
         f.write(f'#SBATCH --cpus-per-task=4\n')
+        
+        # get curr python env abs path
+        f.write(f'export PYTHON_ENV=$(which python)\n') 
 
         # add a line for invoking predict_saliency for each shard
-        f.write(f'/cs/labs/adiyoss/alonzi/miniconda/envs/deepsalience_env_new/bin/python predict/predict_saliency.py --src_files {os.path.join(args.out_dir, "shard_${SLURM_ARRAY_TASK_ID}.txt")} --out_dir {args.out_dir}\n')
+        f.write(f'$PYTHON_ENV predict/predict_saliency.py --src_files {os.path.join(args.out_dir, "shard_${SLURM_ARRAY_TASK_ID}.txt")} --out_dir {args.out_dir}\n')
         
         
 

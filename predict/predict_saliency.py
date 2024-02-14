@@ -6,6 +6,7 @@ import plotly_express as px
 import os
 import tqdm
 from predict_on_audio import main as predict_saliency_map
+from multiprocessing import Pool
 
 
 def load_saliency_map(path):
@@ -51,7 +52,13 @@ def init_predict_saliency_map_args(args):
     saliency_predict_args.use_neg = True
     return saliency_predict_args
     
-    
+
+def predict_saliency_map_wrapper(args_):
+    saliency_predict_args, audio_file = args_
+    saliency_predict_args.audio_fpath = audio_file
+    predict_saliency_map(saliency_predict_args)
+      
+      
 def main(args):
     # create output directory if it does not exist
     os.makedirs(args.out_dir, exist_ok=True)
@@ -64,13 +71,11 @@ def main(args):
         audio_files = f.readlines()
         audio_files = [f.strip() for f in audio_files]
     
-    # predict saliency maps for all audio files
-    for audio_file in tqdm.tqdm(audio_files):
-        # predict saliency map
-        saliency_predict_args.audio_fpath = audio_file
-        predict_saliency_map(saliency_predict_args)
-        
+    # predict saliency maps for all audio files, using multithreading for speedup
+    with Pool() as p:
+        list(tqdm.tqdm(p.imap(predict_saliency_map_wrapper, [(saliency_predict_args, f) for f in audio_files]), total=len(audio_files)))
 
+        
 if __name__ == '__main__':
     # initialize argument parser
     parser = argparse.ArgumentParser(description='Predict saliency maps of multiple audio files')
