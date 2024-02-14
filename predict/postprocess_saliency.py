@@ -3,7 +3,7 @@ import argparse
 import numpy as np
 import librosa
 import plotly_express as px
-from predict_on_audio import BINS_PER_OCTAVE, N_OCTAVES
+from predict_on_audio import BINS_PER_OCTAVE
 import os
 
 
@@ -43,9 +43,7 @@ def postprocess_saliency_map(saliency_dict):
     return salience, freq_grid[::bins_per_note]
 
 
-def visualize_saliency_map(salience, freqs, times):
-    # fig = px.imshow(salience, origin='lower', aspect='auto')
-     
+def visualize_saliency_map(salience, freqs, times):     
     active_pts_f = []
     active_pts_t = []
     clrs = []
