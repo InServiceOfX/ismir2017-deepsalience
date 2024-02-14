@@ -293,6 +293,35 @@ def save_multif0_output(times, freqs, output_path):
             csv_writer.writerow(row)
 
 
+def postprocess_saliency_map(salience, freq_grid, time_grid, min_saliency):
+    MIN_RELEVANT_FREQ = librosa.note_to_hz('C3')
+    
+    # threshold saliency map
+    salience[salience < min_saliency] = 0
+    salience[freq_grid < MIN_RELEVANT_FREQ] = 0
+    
+    # trim to relevant frequency range
+    min_freq_idx = (np.abs(freq_grid - MIN_RELEVANT_FREQ) < 1e-1).argmax()
+    freq_grid = freq_grid[min_freq_idx:]
+    salience = salience[min_freq_idx:, :]
+   
+    # pad with two zero rows at the beginning
+    NOTES_PER_OCTAVE = 12
+    bins_per_note = BINS_PER_OCTAVE // NOTES_PER_OCTAVE
+    padding_bins = bins_per_note // 2
+
+    # add a zeros at the beginning to center around note freqs
+    salience = np.vstack([np.zeros((padding_bins, salience.shape[1])), salience])    
+    
+    # trim to rows to a multiple of bins_per_note
+    salience = salience[:-(salience.shape[0] % bins_per_note), :]
+
+    # max of every 5 elements in frequency axis
+    salience = np.max(salience.reshape(salience.shape[0]//5, 5, salience.shape[1]), axis=1)
+    return salience, freq_grid[::bins_per_note]
+
+
+
 def save_singlef0_output(times, freqs, output_path):
     """Save singlef0 output to a csv file
 
@@ -313,7 +342,7 @@ def save_singlef0_output(times, freqs, output_path):
 
 
 def compute_output(hcqt, time_grid, freq_grid, task, output_format, threshold,
-                   use_neg, save_dir, save_name):
+                   use_neg, save_dir, save_name, dtype='float32', postprocess=False):
     """Comput output for a given task
 
     Parameters
@@ -342,6 +371,16 @@ def compute_output(hcqt, time_grid, freq_grid, task, output_format, threshold,
 
     print("Computing salience...")
     pitch_activation_mat = get_single_test_prediction(model, hcqt)
+    
+    
+    # postprocess frequencies
+    if postprocess:
+        pitch_activation_mat, freq_grid = postprocess_saliency_map(pitch_activation_mat, freq_grid, time_grid, min_saliency=threshold)
+    
+    # convert to dtype
+    pitch_activation_mat = pitch_activation_mat.astype(dtype)
+    time_grid = time_grid.astype(dtype)
+    freq_grid = freq_grid.astype(dtype)
 
     print("Saving output...")
     if output_format == 'singlef0':
@@ -418,11 +457,11 @@ def main(args):
             print("[Computing {} output]".format(task))
             compute_output(
                 hcqt, time_grid, freq_grid, task, args.output_format,
-                args.threshold, args.use_neg, args.save_dir, save_name)
+                args.threshold, args.use_neg, args.save_dir, save_name, dtype=args.dtype, postprocess=args.postprocess)
     else:
         compute_output(
             hcqt, time_grid, freq_grid, args.task, args.output_format,
-            args.threshold, args.use_neg, args.save_dir, save_name)
+            args.threshold, args.use_neg, args.save_dir, save_name, dtype=args.dtype, postprocess=args.postprocess)
 
 
 if __name__ == "__main__":
@@ -458,5 +497,7 @@ if __name__ == "__main__":
                         default=True,
                         help="If True, report unvoiced frames with negative values. "
                         "This is only used when output_format is singlef0.")
+    parser.add_argument('--dtype', type=str, default='float32')
+    parser.add_argument('--postprocess', action='store_true')
 
     main(parser.parse_args())

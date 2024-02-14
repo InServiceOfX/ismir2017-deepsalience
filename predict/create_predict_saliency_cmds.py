@@ -1,14 +1,9 @@
 
 import argparse
-import numpy as np
 import librosa
-import plotly_express as px
 import os
-import tqdm
-from predict_on_audio import main as predict_saliency_map
 
   
-
 def split_array(array, n_shards):
     shard_size = len(array) // n_shards
     shards = []
@@ -56,13 +51,13 @@ def main(args):
         f.write(f'export PYTHON_ENV=$(which python)\n') 
 
         # add a line for invoking predict_saliency for each shard
-        f.write(f'$PYTHON_ENV predict/predict_saliency.py --src_files {os.path.join(args.out_dir, "shard_${SLURM_ARRAY_TASK_ID}.txt")} --out_dir {args.out_dir}\n')
+        cmd = f'$PYTHON_ENV predict/predict_saliency.py --src_files {os.path.join(args.out_dir, "shard_${SLURM_ARRAY_TASK_ID}.txt")} --out_dir {args.out_dir}'
+        if args.multithread:
+            cmd += f' --multithread'
+        cmd += '\n'
+        f.write(cmd)
         
-        
-
-
-
-        
+  
 if __name__ == '__main__':
     # initialize argument parser
     parser = argparse.ArgumentParser(description='Predict saliency maps of multiple audio files')
@@ -70,6 +65,7 @@ if __name__ == '__main__':
     parser.add_argument('--src_dir', type=str, required=True, help='Path to src audio directory')
     parser.add_argument('--out_dir', type=str, required=True, help='Path to output directory')
     parser.add_argument('--n_shards', type=int, default=1, help='Number of shards')
+    parser.add_argument('--multithread', action='store_true', help='Use multithreading for speedup')
     
     # parse arguments
     args = parser.parse_args()

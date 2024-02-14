@@ -2,7 +2,6 @@
 import argparse
 import numpy as np
 import librosa
-import plotly_express as px
 import os
 import tqdm
 from predict_on_audio import main as predict_saliency_map
@@ -50,6 +49,8 @@ def init_predict_saliency_map_args(args):
     saliency_predict_args.output_format = "salience"
     saliency_predict_args.threshold = 0.3
     saliency_predict_args.use_neg = True
+    saliency_predict_args.dtype = "float16"
+    saliency_predict_args.postprocess = True
     return saliency_predict_args
     
 
@@ -71,17 +72,24 @@ def main(args):
         audio_files = f.readlines()
         audio_files = [f.strip() for f in audio_files]
     
-    # predict saliency maps for all audio files, using multithreading for speedup
-    with Pool() as p:
-        list(tqdm.tqdm(p.imap(predict_saliency_map_wrapper, [(saliency_predict_args, f) for f in audio_files]), total=len(audio_files)))
+    if args.multithread:
+        # predict saliency maps for all audio files, using multithreading for speedup
+        with Pool(processes=4) as p:
+            list(tqdm.tqdm(p.imap(predict_saliency_map_wrapper, [(saliency_predict_args, f) for f in audio_files]), total=len(audio_files)))
+    else:
+        # predict saliency maps for all audio files
+        for audio_file in tqdm.tqdm(audio_files):
+            saliency_predict_args.audio_fpath = audio_file
+            predict_saliency_map(saliency_predict_args)
 
-        
+    
 if __name__ == '__main__':
     # initialize argument parser
     parser = argparse.ArgumentParser(description='Predict saliency maps of multiple audio files')
     # add arguments
     parser.add_argument('--src_files', type=str, required=True, help='Path to src list file')
     parser.add_argument('--out_dir', type=str, required=True, help='Path to output directory')
+    parser.add_argument('--multithread', action='store_true', help='Use multithreading for speedup')
     
     # parse arguments
     args = parser.parse_args()
