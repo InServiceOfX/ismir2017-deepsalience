@@ -12,3 +12,4 @@ tqdm
 plotly_express
 torch
 matplotlib
+ipykernel
