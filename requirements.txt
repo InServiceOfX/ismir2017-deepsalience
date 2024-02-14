@@ -1,5 +1,12 @@
-pescador>=1.0.0
-keras>=2.0.3
-librosa>=0.5.0
-mir_eval>=0.4
-medleydb>=1.2.9
+pescador==1.0.0
+tensorflow==1.13.2
+keras==2.0.3
+librosa==0.7.2
+mir_eval==0.4
+numba==0.48.0
+llvmlite==0.31.0
+resampy==0.3.1
+protobuf==3.20.0
+h5py==2.10.0
+tqdm
+plotly_express
