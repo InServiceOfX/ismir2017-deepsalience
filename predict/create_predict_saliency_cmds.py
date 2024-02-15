@@ -20,9 +20,14 @@ def split_array(array, n_shards):
 def main(args):
     # create output directory if it does not exist
     os.makedirs(args.out_dir, exist_ok=True)
-
-    # list all audio files in args.src_dir with librosa
-    audio_files = librosa.util.find_files(args.src_dir)
+    
+    if args.tracks_list != "":
+        with open(args.tracks_list, 'r') as f:
+            audio_files = f.readlines()
+    else:
+        assert args.src_dir != "", "src_dir or tracks_list must be provided"
+        # list all audio files in args.src_dir with librosa
+        audio_files = librosa.util.find_files(args.src_dir)
 
     # split audio files into n_shards without dropping any file
     shards = split_array(audio_files, args.n_shards)
@@ -62,7 +67,8 @@ if __name__ == '__main__':
     # initialize argument parser
     parser = argparse.ArgumentParser(description='Predict saliency maps of multiple audio files')
     # add arguments
-    parser.add_argument('--src_dir', type=str, required=True, help='Path to src audio directory')
+    parser.add_argument('--src_dir', type=str, default="", help='Path to src audio directory')
+    parser.add_argument('--tracks_list', type=str, default="", help='Path to src list file')
     parser.add_argument('--out_dir', type=str, required=True, help='Path to output directory')
     parser.add_argument('--n_shards', type=int, default=1, help='Number of shards')
     parser.add_argument('--multithread', action='store_true', help='Use multithreading for speedup')
