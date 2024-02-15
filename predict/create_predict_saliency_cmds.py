@@ -41,8 +41,7 @@ def main(args):
                 f.write('\n')
     
     # create an sbatch submission script, in curr dir, with an array of jobs, where each job corresponds to a shard        
-    sbatch_script = 'predict_saliency.sh'
-    with open(sbatch_script, 'w') as f:
+    with open(args.sbatch_script_name, 'w') as f:
         f.write('#!/bin/bash\n')
         f.write(f'#SBATCH --array=0-{args.n_shards-1}\n')
         f.write(f'#SBATCH --job-name=predict_saliency\n')
@@ -72,6 +71,7 @@ if __name__ == '__main__':
     parser.add_argument('--out_dir', type=str, required=True, help='Path to output directory')
     parser.add_argument('--n_shards', type=int, default=1, help='Number of shards')
     parser.add_argument('--multithread', action='store_true', help='Use multithreading for speedup')
+    parser.add_argument('--sbatch_script_name', type=str, default='predict_saliency.sh', help='Name of the sbatch submission script') 
     
     # parse arguments
     args = parser.parse_args()
