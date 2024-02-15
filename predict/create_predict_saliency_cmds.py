@@ -24,6 +24,8 @@ def main(args):
     if args.tracks_list != "":
         with open(args.tracks_list, 'r') as f:
             audio_files = f.readlines()
+            # remove leading/trailing whitespaces
+            audio_files = [f.strip() for f in audio_files]
     else:
         assert args.src_dir != "", "src_dir or tracks_list must be provided"
         # list all audio files in args.src_dir with librosa
