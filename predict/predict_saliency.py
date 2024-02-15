@@ -47,7 +47,7 @@ def init_predict_saliency_map_args(args):
     saliency_predict_args.task = "multif0"
     saliency_predict_args.save_dir = args.out_dir
     saliency_predict_args.output_format = "salience"
-    saliency_predict_args.threshold = 0.3
+    saliency_predict_args.threshold = args.saliency_threshold
     saliency_predict_args.use_neg = True
     saliency_predict_args.dtype = "float16"
     saliency_predict_args.postprocess = True
@@ -90,6 +90,7 @@ if __name__ == '__main__':
     parser.add_argument('--src_files', type=str, required=True, help='Path to src list file')
     parser.add_argument('--out_dir', type=str, required=True, help='Path to output directory')
     parser.add_argument('--multithread', action='store_true', help='Use multithreading for speedup')
+    parser.add_argument('--saliency_threshold', type=float, default=0.3, help='Threshold for saliency map binarization')
     
     # parse arguments
     args = parser.parse_args()

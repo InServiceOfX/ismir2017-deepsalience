@@ -57,7 +57,7 @@ def main(args):
         f.write(f'export PYTHON_ENV=$(which python)\n') 
 
         # add a line for invoking predict_saliency for each shard
-        cmd = f'$PYTHON_ENV predict/predict_saliency.py --src_files {os.path.join(args.out_dir, "shard_${SLURM_ARRAY_TASK_ID}.txt")} --out_dir {args.out_dir}'
+        cmd = f'$PYTHON_ENV predict/predict_saliency.py --src_files {os.path.join(args.out_dir, "shard_${SLURM_ARRAY_TASK_ID}.txt")} --out_dir {args.out_dir} --saliency_threshold {args.saliency_threshold}'
         if args.multithread:
             cmd += f' --multithread'
         cmd += '\n'
@@ -74,6 +74,8 @@ if __name__ == '__main__':
     parser.add_argument('--n_shards', type=int, default=1, help='Number of shards')
     parser.add_argument('--multithread', action='store_true', help='Use multithreading for speedup')
     parser.add_argument('--sbatch_script_name', type=str, default='predict_saliency.sh', help='Name of the sbatch submission script') 
+    parser.add_argument('--saliency_threshold', type=float, default=0.3, help='Threshold for saliency map binarization')
+
     
     # parse arguments
     args = parser.parse_args()
