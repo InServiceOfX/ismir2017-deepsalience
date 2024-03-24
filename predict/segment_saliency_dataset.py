@@ -74,9 +74,10 @@ class SegmentSaliencyDataset(Dataset):
     def __len__(self):
         return len(self.saliency_files)
     
-    def __getitem__(self, idx):
+    def __getitem__(self, idx, offset: float = None):
         # random offset
-        offset = self.get_offset(idx)
+        if offset is None:
+            offset = self.get_offset(idx)
         
         # read audio and saliency
         wav, salience, wav_sr = self.load_data(idx, offset)   
