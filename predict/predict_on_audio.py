@@ -367,11 +367,11 @@ def compute_output(hcqt, time_grid, freq_grid, task, output_format, threshold,
         Output file basename
 
     """
+    
     model = load_model(task)
 
     print("Computing salience...")
     pitch_activation_mat = get_single_test_prediction(model, hcqt)
-    
     
     # postprocess frequencies
     if postprocess:
@@ -446,22 +446,24 @@ def main(args):
         raise ValueError("task must be 'all' or one of {}".format(TASKS))
 
     save_name = os.path.basename(args.audio_fpath).split('.')[0]
+    fpath = os.path.join(args.save_dir, "{}_{}_{}.csv".format(save_name, args.task, args.output_format)) if args.output_format not in {'singlef0', 'multif0'} else os.path.join(args.save_dir, "{}_{}_salience.npz".format(save_name, args.task))
+    if not os.path.exists(fpath) or args.override:
 
-    # this is slow for long audio files
-    print("Computing HCQT...")
-    hcqt, freq_grid, time_grid = compute_hcqt(args.audio_fpath)
+        # this is slow for long audio files
+        print("Computing HCQT...")
+        hcqt, freq_grid, time_grid = compute_hcqt(args.audio_fpath)
 
 
-    if args.task == 'all':
-        for task in TASKS:
-            print("[Computing {} output]".format(task))
+        if args.task == 'all':
+            for task in TASKS:
+                print("[Computing {} output]".format(task))
+                compute_output(
+                    hcqt, time_grid, freq_grid, task, args.output_format,
+                    args.threshold, args.use_neg, args.save_dir, save_name, dtype=args.dtype, postprocess=args.postprocess)
+        else:
             compute_output(
-                hcqt, time_grid, freq_grid, task, args.output_format,
+                hcqt, time_grid, freq_grid, args.task, args.output_format,
                 args.threshold, args.use_neg, args.save_dir, save_name, dtype=args.dtype, postprocess=args.postprocess)
-    else:
-        compute_output(
-            hcqt, time_grid, freq_grid, args.task, args.output_format,
-            args.threshold, args.use_neg, args.save_dir, save_name, dtype=args.dtype, postprocess=args.postprocess)
 
 
 if __name__ == "__main__":
@@ -499,5 +501,6 @@ if __name__ == "__main__":
                         "This is only used when output_format is singlef0.")
     parser.add_argument('--dtype', type=str, default='float32')
     parser.add_argument('--postprocess', action='store_true')
+    parser.add_argument('--override', action='store_true')
 
     main(parser.parse_args())

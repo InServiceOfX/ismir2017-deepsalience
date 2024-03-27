@@ -51,13 +51,14 @@ def main(args):
         f.write(f'#SBATCH --error={args.out_dir}/predict_saliency_%a.err\n')
         f.write(f'#SBATCH --time=12:00:00\n')
         f.write(f'#SBATCH --mem=32G\n')
-        f.write(f'#SBATCH --cpus-per-task=4\n')
+        f.write(f'#SBATCH --cpus-per-task=10\n')
         
-        # get curr python env abs path
-        f.write(f'export PYTHON_ENV=$(which python)\n') 
+        # # get curr python env abs path
+        # f.write(f'export PYTHON_ENV=$(which python)\n') 
 
         # add a line for invoking predict_saliency for each shard
-        cmd = f'$PYTHON_ENV predict/predict_saliency.py --src_files {os.path.join(args.out_dir, "shard_${SLURM_ARRAY_TASK_ID}.txt")} --out_dir {args.out_dir} --saliency_threshold {args.saliency_threshold}'
+        cmd = f'/private/home/ortal1/.conda/envs/deep_salience/bin/python /checkpoint/ortal1/Projects/forked_deepsalience_repo/predict/predict_saliency.py --src_files {os.path.join(args.out_dir, "shard_${SLURM_ARRAY_TASK_ID}.txt")} --out_dir {args.out_dir} --saliency_threshold {args.saliency_threshold}'
+        # cmd = f'$PYTHON_ENV predict/predict_saliency.py --src_files {os.path.join(args.out_dir, "shard_${SLURM_ARRAY_TASK_ID}.txt")} --out_dir {args.out_dir} --saliency_threshold {args.saliency_threshold}'
         if args.multithread:
             cmd += f' --multithread'
         cmd += '\n'
