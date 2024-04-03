@@ -97,3 +97,4 @@ ENV/
 *.npz
 *.out
 *.err
+*.ipynb
