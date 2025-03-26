@@ -4,8 +4,14 @@ keras==2.0.3
 librosa==0.7.2
 mir_eval==0.4
 numba==0.48.0
-llvmlite==0.31.0
+# Originally llvmlite==0.31.0, but when trying to uninstall it, this error is
+# obtained:
+# ERROR: Cannot uninstall 'llvmlite'. It is a distutils installed project and thus we cannot accurately determine which files belong to it which would lead to only a partial uninstall
+# However, numba 0.48.0requires llvmlite>=0.31.0dev0
+llvmlite>=0.31.0
 resampy==0.3.1
+# Originally 3.20.0 But on pip 19.2.3 and 21.3.1, 3.20.0 is not there; but
+# 3.19.6 and 4.21.0 do.
 protobuf==3.20.0
 h5py==2.10.0
 tqdm
